@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0e1116">
+<title>Mental Math Gym</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d1015;--card:#161a21;--card2:#1d222b;--line:#272d38;--text:#e9ecf1;--mute:#8a93a3;
+  --acc:#3ddc84;--accd:#1f8f52;--bad:#ff6b6b;--warn:#f5b942;--blue:#6aa8ff;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100dvh}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.screen{max-width:480px;margin:0 auto;padding:18px 16px 40px}
+.screen[hidden]{display:none!important}
+h1{font-size:22px;margin:0;font-weight:800;letter-spacing:-.02em}
+h2{font-size:20px;margin:4px 0 14px;font-weight:700;letter-spacing:-.01em}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);margin:26px 0 10px;font-weight:600}
+.small{font-size:13px;color:var(--mute)}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.iconbtn{width:38px;height:38px;border-radius:12px;background:var(--card);display:grid;place-items:center;font-size:17px;border:1px solid var(--line)}
+.hero{background:linear-gradient(160deg,#18202b,#12161d);border:1px solid var(--line);border-radius:22px;padding:20px;display:flex;gap:18px;align-items:center}
+.ring{position:relative;width:104px;height:104px;flex:none}
+.ring svg{transform:rotate(-90deg)}
+.ring .lbl{position:absolute;inset:0;display:grid;place-items:center;text-align:center;line-height:1.1}
+.ring .lbl b{font-size:20px}
+.ring .lbl span{font-size:11px;color:var(--mute)}
+.streak{font-size:34px;font-weight:800;letter-spacing:-.02em}
+.streak small{font-size:14px;font-weight:600;color:var(--mute);margin-left:4px}
+.cta{display:block;width:100%;margin-top:16px;padding:17px;border-radius:16px;background:var(--acc);color:#04210f;font-weight:800;font-size:17px;letter-spacing:-.01em;box-shadow:0 8px 24px -10px rgba(61,220,132,.6)}
+.cta:active{transform:scale(.98)}
+.cta.ghost{background:var(--card2);color:var(--text);box-shadow:none;border:1px solid var(--line)}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px;text-align:left;display:flex;flex-direction:column;gap:8px;min-height:96px}
+.cat:active{background:var(--card2)}
+.cat .ic{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;color:var(--acc);background:rgba(61,220,132,.1);border-radius:9px;padding:4px 8px;align-self:flex-start}
+.cat .nm{font-weight:600;font-size:14px;line-height:1.25}
+.cat .meta{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--mute);margin-top:auto}
+.dots{display:flex;gap:3px}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--acc)}
+.tip-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:10px}
+.links{display:flex;gap:10px;margin-top:12px}
+.links button{flex:1;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 6px;font-weight:600;font-size:14px}
+
+/* game */
+#game{padding:0;height:100dvh;display:flex;flex-direction:column}
+.gtop{display:flex;align-items:center;gap:12px;padding:14px 16px 6px}
+.tbar{flex:1;height:8px;background:var(--card2);border-radius:99px;overflow:hidden}
+.tfill{height:100%;background:var(--acc);border-radius:99px;transition:width .1s linear}
+.timer{font-weight:700;font-size:15px;min-width:52px;text-align:right}
+.gmeta{display:flex;justify-content:space-between;padding:4px 18px;font-size:13px;color:var(--mute)}
+.gmeta b{color:var(--text)}
+.qcard{flex:1;display:flex;flex-direction:column;justify-content:center;padding:10px 20px;min-height:0;position:relative}
+.qtext{font-size:26px;font-weight:700;line-height:1.3;letter-spacing:-.01em;text-align:center}
+.qtext.long{font-size:19px;font-weight:600}
+.qtext small{display:block;font-size:13px;color:var(--mute);font-weight:500;margin-top:6px}
+.ansrow{margin-top:22px;display:flex;justify-content:center;align-items:baseline;gap:8px;min-height:52px}
+.ans{font-size:40px;font-weight:700;border-bottom:3px solid var(--line);min-width:120px;text-align:center;padding:0 8px 2px;transition:border-color .15s,color .15s}
+.ans.ok{border-color:var(--acc);color:var(--acc)}
+.ans.bad{border-color:var(--bad);color:var(--bad)}
+.unit{font-size:16px;color:var(--mute);font-weight:600}
+.fb{margin-top:16px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--bad);border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.5;max-height:34vh;overflow:auto}
+.fb .corr{font-size:16px;margin-bottom:6px}
+.fb .corr b{color:var(--acc)}
+.fb .t{color:#c9cfda}
+.lvl{font-size:11px;color:var(--mute);background:var(--card2);border-radius:6px;padding:2px 6px;margin-left:6px}
+.keypad{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px 12px calc(14px + env(safe-area-inset-bottom))}
+.keypad button{height:58px;border-radius:14px;background:var(--card);border:1px solid var(--line);font-size:22px;font-weight:600;font-family:'JetBrains Mono',monospace;touch-action:manipulation;user-select:none}
+.keypad button:active{background:#2a313d;transform:scale(.97)}
+.keypad .fn{font-family:Inter,sans-serif;font-size:15px;color:var(--mute)}
+.keypad .go{background:var(--acc);color:#04210f;border-color:var(--acc);font-family:Inter,sans-serif;font-size:17px;font-weight:800}
+.keypad .go.next{background:var(--blue);border-color:var(--blue);color:#06142b}
+.flash{animation:fl .3s}
+@keyframes fl{0%{background:rgba(61,220,132,.18)}100%{background:transparent}}
+.shake{animation:sh .3s}
+@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* results / stats */
+.big{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+.stat b{display:block;font-size:26px;font-weight:800;letter-spacing:-.02em}
+.stat span{font-size:12px;color:var(--mute)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{padding:9px 6px;border-bottom:1px solid var(--line);text-align:right}
+th{font-size:11px;color:var(--mute);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+td:first-child,th:first-child{text-align:left}
+.miss{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:8px;font-size:14px;line-height:1.5}
+.miss .mq{font-weight:600;margin-bottom:4px}
+.miss .ma{color:var(--mute)}
+.miss .ma b{color:var(--acc)}
+.miss .ma s{color:var(--bad)}
+.miss .mt{color:#c3c9d4;font-size:13px;margin-top:4px}
+.bars{display:flex;align-items:flex-end;gap:5px;height:130px;padding:10px 4px 0;position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px}
+.bars .b{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
+.bars .b i{display:block;width:100%;border-radius:5px 5px 2px 2px;background:var(--accd);min-height:2px}
+.bars .b i.met{background:var(--acc)}
+.bars .b span{font-size:10px;color:var(--mute);padding-bottom:6px}
+.goal{position:absolute;left:4px;right:4px;border-top:1px dashed #4a5262}
+.bar-acc{height:6px;background:var(--card2);border-radius:9px;overflow:hidden;width:60px;display:inline-block;vertical-align:middle;margin-left:6px}
+.bar-acc i{display:block;height:100%;background:var(--acc)}
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px}
+.seg button{flex:1;padding:10px;border-radius:10px;font-weight:600;color:var(--mute)}
+.seg button.on{background:var(--card2);color:var(--text)}
+.tog{display:flex;justify-content:space-between;align-items:center;padding:12px 2px;border-bottom:1px solid var(--line);font-size:15px}
+.sw{width:46px;height:28px;border-radius:99px;background:var(--line);position:relative;transition:.2s;flex:none}
+.sw::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s}
+.sw.on{background:var(--acc)}
+.sw.on::after{left:21px}
+.danger{color:var(--bad);border:1px solid #4a2a2e;background:#1f1517;border-radius:14px;padding:13px;width:100%;margin-top:18px;font-weight:600}
+.cheat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px 14px;margin-bottom:10px}
+.cheat h4{margin:10px 0 6px;font-size:15px}
+.cheat table td{font-size:14px;padding:7px 4px}
+.cheat td:last-child{font-family:'JetBrains Mono',monospace;color:var(--acc)}
+.cheat p{font-size:14px;line-height:1.55;color:#cdd3dd;margin:6px 0 10px}
+.cheat p b{color:var(--text)}
+.note{font-size:12px;color:var(--mute);text-align:center;margin-top:26px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<section id="home" class="screen">
+  <div class="top">
+    <div><h1>Mental Math Gym</h1><div class="small" id="hello"></div></div>
+    <button class="iconbtn" data-go="settings" aria-label="Settings">⚙</button>
+  </div>
+  <div class="hero">
+    <div class="ring" id="ring"></div>
+    <div>
+      <div class="streak" id="streak">0<small>day streak</small></div>
+      <div class="small" id="streakSub"></div>
+    </div>
+  </div>
+  <button class="cta" id="startDaily">Start today's workout</button>
+  <div class="links">
+    <button data-go="stats">📈 Progress</button>
+    <button data-go="cheat">📘 Shortcuts</button>
+  </div>
+  <div id="focusBox"></div>
+  <h3>Drill a skill</h3>
+  <div class="grid" id="cats"></div>
+  <p class="note">Your progress is saved in this browser on this device.<br>Tip: add this page to your home screen for one-tap access.</p>
+</section>
+
+<!-- GAME -->
+<section id="game" class="screen" hidden>
+  <div class="gtop">
+    <button class="iconbtn" id="quit" aria-label="End session">✕</button>
+    <div class="tbar"><div class="tfill" id="tfill"></div></div>
+    <div class="timer mono" id="timer">5:00</div>
+  </div>
+  <div class="gmeta"><span id="gcat"></span><span><b id="gscore">0</b> correct</span></div>
+  <div class="qcard" id="qcard">
+    <div class="qtext" id="qtext"></div>
+    <div class="ansrow"><span class="ans mono" id="ans">&nbsp;</span><span class="unit" id="unit"></span></div>
+    <div class="fb" id="fb" hidden></div>
+  </div>
+  <div class="keypad" id="keypad">
+    <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button class="fn" data-k="del">⌫</button>
+    <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button class="fn" data-k="neg">±</button>
+    <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button class="fn" data-k="skip">Skip</button>
+    <button data-k=".">.</button><button data-k="0">0</button><button data-k="00">00</button><button class="go" id="goBtn" data-k="ok">✓</button>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section id="results" class="screen" hidden>
+  <div class="top"><h1 id="resTitle">Session complete</h1></div>
+  <div id="resBody"></div>
+  <div class="row" style="margin-top:18px">
+    <button class="cta ghost" data-go="home">Home</button>
+    <button class="cta" id="again">Go again</button>
+  </div>
+</section>
+
+<!-- STATS -->
+<section id="stats" class="screen" hidden>
+  <div class="top"><button class="iconbtn" data-go="home">←</button><h1>Progress</h1><span style="width:38px"></span></div>
+  <div id="statsBody"></div>
+</section>
+
+<!-- SETTINGS -->
+<section id="settings" class="screen" hidden>
+  <div class="top"><button class="iconbtn" data-go="home">←</button><h1>Settings</h1><span style="width:38px"></span></div>
+  <div id="setBody"></div>
+</section>
+
+<!-- CHEAT SHEET -->
+<section id="cheat" class="screen" hidden>
+  <div class="top"><button class="iconbtn" data-go="home">←</button><h1>Shortcuts</h1><span style="width:38px"></span></div>
+
+  <div class="cheat"><h4>Indian ↔ international units</h4>
+    <table>
+      <tr><td>1 lakh</td><td>100,000 = 0.1 mn</td></tr>
+      <tr><td>10 lakh</td><td>1 million</td></tr>
+      <tr><td>1 crore</td><td>10 million</td></tr>
+      <tr><td>100 crore</td><td>1 billion</td></tr>
+      <tr><td>1,000 crore</td><td>10 billion</td></tr>
+      <tr><td>1 lakh crore</td><td>1 trillion</td></tr>
+      <tr><td>$1 bn at ₹R/$</td><td>₹(R × 100) crore</td></tr>
+    </table>
+    <p><b>Trick:</b> crore → million: ×10. Million → crore: ÷10. Billion → crore: ×100.</p>
+  </div>
+
+  <div class="cheat"><h4>Fractions you should know cold</h4>
+    <table>
+      <tr><td>1/3 · 2/3</td><td>33.33% · 66.67%</td></tr>
+      <tr><td>1/6 · 5/6</td><td>16.67% · 83.33%</td></tr>
+      <tr><td>1/7</td><td>14.29%</td></tr>
+      <tr><td>1/8 · 3/8 · 5/8 · 7/8</td><td>12.5 · 37.5 · 62.5 · 87.5</td></tr>
+      <tr><td>1/9</td><td>11.11%</td></tr>
+      <tr><td>1/11</td><td>9.09%</td></tr>
+      <tr><td>1/12</td><td>8.33%</td></tr>
+      <tr><td>1/16</td><td>6.25%</td></tr>
+      <tr><td>1/40</td><td>2.5%</td></tr>
+    </table>
+  </div>
+
+  <div class="cheat"><h4>Percentages</h4>
+    <p><b>Build from 10% and 1%:</b> 35% of 640 = 3×64 + ½×64 = 192 + 32 = 224.</p>
+    <p><b>Flip it:</b> x% of y = y% of x. 8% of 25 = 25% of 8 = 2.</p>
+    <p><b>Remove GST:</b> divide by 1.18, never multiply by 0.82.</p>
+    <p><b>Successive changes:</b> a + b + ab/100. +20% then −20% = −4%.</p>
+  </div>
+  <div class="cheat"><h4>Recovering a loss</h4>
+    <table>
+      <tr><td>−10%</td><td>needs +11.1%</td></tr>
+      <tr><td>−20%</td><td>needs +25%</td></tr>
+      <tr><td>−25%</td><td>needs +33.3%</td></tr>
+      <tr><td>−33.3%</td><td>needs +50%</td></tr>
+      <tr><td>−50%</td><td>needs +100%</td></tr>
+      <tr><td>−75%</td><td>needs +300%</td></tr>
+    </table>
+    <p>Formula: x ÷ (100 − x).</p>
+  </div>
+
+  <div class="cheat"><h4>Multiplication</h4>
+    <p><b>×5</b> = ×10 ÷ 2 · <b>×25</b> = ×100 ÷ 4 · <b>×125</b> = ×1000 ÷ 8</p>
+    <p><b>×9</b> = ×10 − x · <b>×11</b>: 43×11 → 4 | 4+3 | 3 = 473</p>
+    <p><b>Difference of squares:</b> 48×52 = 50² − 2² = 2,496</p>
+    <p><b>Split:</b> 47×36 = 47×30 + 47×6 = 1,410 + 282 = 1,692</p>
+  </div>
+  <div class="cheat"><h4>Squares</h4>
+    <p><b>Ends in 5:</b> 65² → 6×7 = 42, append 25 → 4,225</p>
+    <p><b>Near 50:</b> 53² → (25+3) hundreds + 3² = 2,809</p>
+    <p><b>Near 100:</b> 97² → (97−3) hundreds + 3² = 9,409 · 106² → 112 | 36 = 11,236</p>
+  </div>
+
+  <div class="cheat"><h4>Growth & compounding</h4>
+    <table>
+      <tr><td>Doubling (2×)</td><td>72 ÷ rate</td></tr>
+      <tr><td>Tripling (3×)</td><td>≈ 114 ÷ rate</td></tr>
+      <tr><td>Quadrupling (4×)</td><td>≈ 144 ÷ rate</td></tr>
+      <tr><td>1.1² · 1.1³</td><td>1.21 · 1.331</td></tr>
+      <tr><td>1.15² · 1.2² · 1.2³</td><td>1.3225 · 1.44 · 1.728</td></tr>
+      <tr><td>1.12⁶</td><td>≈ 1.97 (≈2×)</td></tr>
+    </table>
+    <p><b>Real return</b> ≈ nominal − inflation (slightly less in reality).</p>
+  </div>
+
+  <div class="cheat"><h4>Valuation shorthand</h4>
+    <table>
+      <tr><td>P/E</td><td>Price ÷ EPS</td></tr>
+      <tr><td>Earnings yield</td><td>1 ÷ P/E</td></tr>
+      <tr><td>PEG</td><td>P/E ÷ growth %</td></tr>
+      <tr><td>EV</td><td>Mcap + Debt − Cash</td></tr>
+      <tr><td>Equity value</td><td>EV − Net debt</td></tr>
+      <tr><td>P/B</td><td>Price ÷ Book value</td></tr>
+      <tr><td>ROE</td><td>Net profit ÷ Equity</td></tr>
+      <tr><td>Div. yield</td><td>DPS ÷ Price</td></tr>
+    </table>
+    <p>P/E 20 = 5% earnings yield · P/E 25 = 4% · P/E 50 = 2%.</p>
+  </div>
+
+  <div class="cheat"><h4>Basis points & bonds</h4>
+    <table>
+      <tr><td>1 bp</td><td>0.01%</td></tr>
+      <tr><td>100 bps</td><td>1%</td></tr>
+      <tr><td>1 bp on ₹1 lakh</td><td>₹10 / yr</td></tr>
+      <tr><td>1 bp on ₹1 crore</td><td>₹1,000 / yr</td></tr>
+      <tr><td>1 bp on $1 bn</td><td>$100k / yr</td></tr>
+    </table>
+    <p><b>Price change ≈ −Duration × Δyield.</b> Duration 6, yields +50 bps → price ≈ −3%.</p>
+  </div>
+</section>
+
+<script>
+// ===== GEN-START =====
+const R=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const P=a=>a[Math.floor(Math.random()*a.length)];
+const rd=(x,d=2)=>{const m=Math.pow(10,d);return Math.round(x*m)/m};
+const fx=(n,d=2)=>Number(n).toLocaleString('en-IN',{maximumFractionDigits:d});
+const fU=(n,d=2)=>Number(n).toLocaleString('en-US',{maximumFractionDigits:d});
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+function placeParts(n){const s=String(n),o=[];for(let i=0;i<s.length;i++){const d=+s[i];if(d)o.push(d*Math.pow(10,s.length-1-i))}return o}
+const UNITS={thousand:1e3,lakh:1e5,million:1e6,crore:1e7,billion:1e9,trillion:1e12,'lakh crore':1e12};
+
+const GEN={
+add(L){
+  let a,b,c=0;
+  if(L===1){a=R(12,89);b=R(12,89)}
+  else if(L===2){a=R(105,899);b=R(13,99)}
+  else if(L===3){a=R(105,999);b=R(105,999)}
+  else if(L===4){a=R(1050,9899);b=R(105,999)}
+  else{a=R(1050,9899);b=R(1050,9899);c=R(105,999)}
+  const s=a+b+c;let run=a;const st=[fx(a)];
+  for(const p of placeParts(b)){run+=p;st.push(`+${fx(p)} = ${fx(run)}`)}
+  return{q:`${fx(a)} + ${fx(b)}${c?' + '+fx(c):''}`,a:s,tip:`Left to right: ${st.join(' → ')}${c?` → +${fx(c)} = ${fx(s)}`:''}`};
+},
+sub(L){
+  let a,b;
+  if(L===1){a=R(40,99);b=R(12,a-5)}
+  else if(L===2){a=R(200,999);b=R(25,199)}
+  else if(L===3){if(Math.random()<.5){a=P([1000,2000,5000,10000]);b=R(123,987)}else{a=R(500,999);b=R(105,a-30)}}
+  else if(L===4){a=R(2000,9999);b=R(1050,a-200)}
+  else{a=R(10000,99999);b=R(5000,a-1000)}
+  const d=a-b;let m=b>=1000?100:10;let bu=Math.ceil(b/m)*m;if(bu>a){m=10;bu=Math.ceil(b/m)*m}
+  const tip=bu===b?`Subtract place by place, or count up from ${fx(b)} to ${fx(a)}.`:`Round ${fx(b)} up to ${fx(bu)}: ${fx(a)} − ${fx(bu)} = ${fx(a-bu)}, then add back ${bu-b} → ${fx(d)}`;
+  return{q:`${fx(a)} − ${fx(b)}`,a:d,tip};
+},
+mul(L){
+  let a,b;const t=Math.random();
+  if(L===1){a=R(12,49);b=R(3,9)}
+  else if(L===2){if(t<.3){a=R(12,99);b=11}else{a=R(51,99);b=R(3,9)}}
+  else if(L===3){if(t<.25){a=R(4,48)*4;b=25}else{a=R(12,49);b=R(12,29)}}
+  else if(L===4){if(t<.2){a=R(2,40)*8;b=125}else if(t<.4){a=R(102,999);b=R(3,9)}else if(t<.55){const m=P([20,30,40,50,60,70]);const d=R(1,6);a=m+d;b=m-d}else{a=R(31,99);b=R(31,99)}}
+  else{a=R(102,499);b=R(12,49)}
+  const p=a*b;let tip;
+  if(b===11&&a<100){const x=Math.floor(a/10),y=a%10;tip=`×11: ${x} _ ${y}, middle = ${x}+${y} = ${x+y}${x+y>=10?' (carry 1)':''} → ${fx(p)}`}
+  else if(b===25)tip=`×25 = ×100 ÷ 4 → ${fx(a*100)} ÷ 4 = ${fx(p)}`;
+  else if(b===125)tip=`×125 = ×1000 ÷ 8 → ${fx(a*1000)} ÷ 8 = ${fx(p)}`;
+  else if((a+b)%2===0&&Math.abs(a-b)<=12&&(a+b)/2%10===0&&a!==b){const m=(a+b)/2,d=Math.abs(a-m);tip=`Difference of squares: ${m}² − ${d}² = ${fx(m*m)} − ${d*d} = ${fx(p)}`}
+  else if(b<10){const at=a-a%10,ao=a%10;tip=`Split: ${fx(at)}×${b} = ${fx(at*b)}, ${ao}×${b} = ${ao*b} → ${fx(p)}`}
+  else{const bt=b-b%10,bo=b%10;tip=`Split: ${a}×${bt} = ${fx(a*bt)}${bo?`, ${a}×${bo} = ${fx(a*bo)}`:''} → ${fx(p)}`}
+  return{q:Math.random()<.5?`${fx(a)} × ${b}`:`${b} × ${fx(a)}`,a:p,tip};
+},
+div(L){
+  let b,q,n,tip;const t=Math.random();
+  if(L===4&&t<.3){b=P([25,125]);n=R(12,999)*(b===25?1:R(1,9));const a=rd(n/b,3);
+    tip=b===25?`÷25 = ×4 ÷ 100 → ${fx(n*4)} ÷ 100 = ${fx(a,3)}`:`÷125 = ×8 ÷ 1000 → ${fx(n*8)} ÷ 1000 = ${fx(a,3)}`;
+    return{q:`${fx(n)} ÷ ${b}`,a,tip,tol:.005};}
+  if(L===1){b=R(3,9);q=R(4,25)}
+  else if(L===2){b=R(3,9);q=R(14,150)}
+  else if(L===3){if(t<.3){b=25;q=R(5,400)}else{b=R(11,25);q=R(5,45)}}
+  else if(L===4){b=R(12,49);q=R(12,99)}
+  else{b=R(13,99);q=R(25,250)}
+  n=b*q;
+  if(b===25)tip=`÷25 = ×4 ÷ 100 → ${fx(n*4)} ÷ 100 = ${q}`;
+  else{const k=Math.pow(10,String(q).length-1),big=Math.floor(q/k)*k;tip=big===q?`${b} × ${q} = ${fx(n)}`:`Chunk: ${b}×${big} = ${fx(b*big)}, left ${fx(n-b*big)} = ${b}×${q-big} → ${q}`}
+  return{q:`${fx(n)} ÷ ${b}`,a:q,tip};
+},
+pct(L){
+  const FR={12.5:'1/8',37.5:'3/8',62.5:'5/8',87.5:'7/8',25:'1/4',50:'1/2',75:'3/4',20:'1/5'};
+  if(L===5){const k=P(['of','gst','disc','plain']);
+    if(k==='of'){const Y=R(120,999),X=R(15,Y-10),a=rd(X/Y*100,2);return{q:`${fx(X)} is what % of ${fx(Y)}?`,a,tol:.15,unit:'%',tip:`1% of ${fx(Y)} = ${fx(Y/100)}. ${fx(X)} ÷ ${fx(Y/100)} ≈ ${fx(a,1)}%`}}
+    if(k==='gst'){const base=R(4,200)*50,X=rd(base*1.18,2);return{q:`Price incl. 18% GST is ₹${fx(X)}. Price before GST?`,long:1,a:base,unit:'₹',tip:`Divide by 1.18 (not ×0.82): ${fx(X)} ÷ 1.18 = ${fx(base)}`}}
+    if(k==='disc'){const d=P([10,15,20,25,40]),base=R(4,99)*100,X=base*(1-d/100);return{q:`After a ${d}% discount you pay ₹${fx(X)}. Original price?`,long:1,a:base,unit:'₹',tip:`You paid ${100-d}% → ${fx(X)} ÷ ${(100-d)/100} = ${fx(base)}`}}
+  }
+  let p,Y;
+  if(L===1){p=P([10,20,25,50,5]);Y=R(2,99)*20}
+  else if(L===2){p=P([15,30,40,60,75,5,20]);Y=R(2,99)*10}
+  else if(L===3){p=P([12,18,35,45,7,3,8,6,9,24]);Y=R(11,99)*10}
+  else if(L===4){p=P([12.5,37.5,62.5,87.5,2.5,17.5]);Y=p%5===2.5&&p!==2.5&&p!==17.5?R(3,99)*8:R(2,49)*40}
+  else{p=R(11,49);Y=R(12,99)*50}
+  const a=rd(p*Y/100,3);let tip;
+  if(FR[p])tip=`${p}% = ${FR[p]} → ${fx(Y)} × ${FR[p]} = ${fx(a)}`;
+  else if(p===2.5)tip=`2.5% = ¼ of 10%: ${fx(Y/10)} ÷ 4 = ${fx(a)}`;
+  else if(p===17.5)tip=`10% + 5% + 2.5% = ${fx(Y/10)} + ${fx(Y/20)} + ${fx(Y/40)} = ${fx(a)}`;
+  else if(p===5)tip=`5% = half of 10%: ${fx(Y/10)} ÷ 2 = ${fx(a)}`;
+  else{const tn=Math.floor(p/10),on=p%10;tip=`10% = ${fx(Y/10)}, 1% = ${fx(Y/100)} → ${tn?`${tn}×10%`:''}${tn&&on?' + ':''}${on?`${on}×1%`:''} = ${fx(a)}`}
+  return{q:`${p}% of ${fx(Y)}`,a,unit:'',tol:.01,tip};
+},
+chg(L){
+  const neg=' <small>use ± for a fall</small>';
+  if(L<=2){const A=P([20,40,60,80,120,200,240,400,500,800])*(L===2?R(1,9):1);const p=P(L===1?[10,20,25,50,-10,-20,-25,-50]:[5,15,30,35,40,-5,-15,-30,-40,60,75]);const B=rd(A*(1+p/100),2);
+    return{q:`${fx(A)} → ${fx(B)}<br>% change?${neg}`,a:p,unit:'%',tol:.05,tip:`(New − Old) ÷ Old = ${fx(B-A)} ÷ ${fx(A)} = ${p}%`}}
+  if(L===3){const A=R(80,999);let B=Math.round(A*(1+R(-35,60)/100))+R(-5,5);if(B===A)B+=7;const a=rd((B-A)/A*100,2);
+    return{q:`${fx(A)} → ${fx(B)}<br>% change?${neg}`,a,unit:'%',tol:.3,tip:`${fx(B-A)} ÷ ${fx(A)}. 1% of ${fx(A)} = ${fx(A/100)} → ≈ ${fx(a,1)}%`}}
+  const k=P(L===4?['rec','seq','base']:['bps','bps2','seq']);
+  if(k==='rec'){const x=P([10,20,25,40,50,60,75,80,90]);const a=rd(x/(100-x)*100,2);return{q:`A stock falls ${x}%. What % rise gets it back to where it started?`,long:1,a,unit:'%',tol:.3,tip:`Needed gain = x ÷ (100 − x) = ${x} ÷ ${100-x} = ${fx(a,1)}%`}}
+  if(k==='seq'){const p1=P([10,15,20,25,30,50]),p2=P([10,15,20,25,30,40]);const up=Math.random()<.5;const f1=1+p1/100,f2=up?1+p2/100:1-p2/100;const a=rd((f1*f2-1)*100,2);
+    return{q:`Up ${p1}%, then ${up?'up':'down'} ${p2}%. Net % change?${neg}`,long:1,a,unit:'%',tol:.05,tip:`a + b + ab/100 = ${p1} ${up?'+':'−'} ${p2} ${up?'+':'−'} ${fx(p1*p2/100)} = ${fx(a)}%`}}
+  if(k==='base'){const g=P([10,20,25,50,60,8,12.5]);const base=R(8,96)*(g===12.5||g===8?25:10);const X=rd(base*(1+g/100),2);return{q:`Revenue grew ${g}% to ₹${fx(X)} crore. Last year's revenue?`,long:1,a:base,unit:'₹ cr',tip:`Divide by ${1+g/100}, don't subtract ${g}%: ${fx(X)} ÷ ${1+g/100} = ${fx(base)}`}}
+  if(k==='bps'){const m1=rd(R(60,250)/10,1),d=R(-30,40)*10||50;const m2=rd(m1+d/100,1);return{q:`EBITDA margin ${m1.toFixed(1)}% → ${m2.toFixed(1)}%. Change in bps?${neg}`,long:1,a:d,unit:'bps',tol:.5,tip:`${m2.toFixed(1)} − ${m1.toFixed(1)} = ${fx(d/100)} pts × 100 = ${d} bps`}}
+  const r1=R(10,60)*50,g=P([10,20,25,40]),r2=r1*(1+g/100),m1=R(6,20),m2=m1+P([-3,-2,-1,1,2,3,4]);
+  return{q:`Revenue ₹${fx(r1)} cr → ₹${fx(r2)} cr; profit ₹${fx(r1*m1/100)} cr → ₹${fx(r2*m2/100)} cr. Net margin change in bps?${neg}`,long:1,a:(m2-m1)*100,unit:'bps',tol:.5,tip:`Margins: ${fx(r1*m1/100)}/${fx(r1)} = ${m1}%, ${fx(r2*m2/100)}/${fx(r2)} = ${m2}% → ${(m2-m1)*100} bps`};
+},
+scale(L){
+  if(L<=3){
+    const pairs={1:[['million','billion'],['thousand','million'],['billion','trillion'],['lakh','crore']],2:[['lakh','million'],['crore','million'],['crore','billion'],['thousand','lakh']],3:[['lakh crore','billion'],['crore','trillion'],['lakh','billion'],['billion','lakh crore'],['crore','million'],['lakh','million']]}[L];
+    const M=[1.2,1.5,2,2.5,3,3.6,4,4.5,6,7.5,8,12,15,24,25,36,45,60,75,120,150,250,450,600,750,1200,2500,4800,15000,64000];
+    for(let i=0;i<200;i++){let [f,t]=P(pairs);if(Math.random()<.5)[f,t]=[t,f];const v=P(M);const a=rd(v*UNITS[f]/UNITS[t],6);
+      if(a<0.001||a>1e6||Math.abs(a*1000-Math.round(a*1000))>1e-6)continue;
+      const r=UNITS[f]/UNITS[t];const cur=(f.includes('lakh')||f.includes('crore')||t.includes('lakh')||t.includes('crore'))?'₹':P(['$','₹']);
+      return{q:`${cur}${fx(v)} ${f} = ? ${t}`,a,rtol:1e-6,unit:t,tip:`1 ${f} = ${fx(r,6)} ${t} → ${fx(v)} × ${fx(r,6)} = ${fx(a,4)}. Anchors: 10 lakh = 1 mn · 1 cr = 10 mn · 100 cr = 1 bn`}}
+  }
+  const k=P(L===4?['usmcap','inmcap','fx','fx2']:['perUser','eps','gdp','fx']);
+  if(k==='usmcap'){const p=R(5,250),s=P([50,80,120,250,400,600,1500]);const a=rd(p*s/1000,4);return{q:`$${p} per share × ${fU(s)} million shares = $? billion`,long:1,a,rtol:1e-6,unit:'$ bn',tip:`${p} × ${fU(s)} mn = ${fU(p*s)} mn = ${fU(a,3)} bn (÷1,000)`}}
+  if(k==='inmcap'){const p=R(5,250)*10,s=P([1.5,2,4,8,12,25,60]);return{q:`₹${fx(p)} per share × ${s} crore shares = ₹? crore`,long:1,a:rd(p*s,2),rtol:1e-6,unit:'₹ cr',tip:`${fx(p)} × ${s} = ${fx(p*s)} crore`}}
+  if(k==='fx'){const X=P([1.5,2,2.5,4,5,12,20]),r=P([80,83,84,85,86,88,90]);return{q:`$${X} billion at ₹${r}/$ = ₹? crore`,long:1,a:rd(X*r*100,2),rtol:1e-6,unit:'₹ cr',tip:`$1 bn = ₹${r} × 100 crore = ₹${fx(r*100)} cr → × ${X} = ₹${fx(X*r*100)} cr`}}
+  if(k==='fx2'){const r=P([80,84,85,88,90]),k2=P([5,12,25,50,100]);const X=r*k2;return{q:`₹${fx(X)} crore at ₹${r}/$ = $? million`,long:1,a:k2*10,rtol:1e-6,unit:'$ mn',tip:`₹${fx(X)} cr ÷ ${r} = $${k2} crore = $${k2*10} million`}}
+  if(k==='perUser'){const N=P([1.5,2,4,5,8,12,25]),per=R(4,400)*10;return{q:`₹${fx(N*per)} crore revenue ÷ ${N} crore users = ₹? per user`,long:1,a:per,rtol:1e-6,unit:'₹',tip:`Crores cancel: ${fx(N*per)} ÷ ${N} = ₹${fx(per)}`}}
+  if(k==='eps'){const N=P([200,400,500,800,1200,2500]),eps=R(2,40);const X=eps*N/1000;return{q:`$${fU(X,3)} billion net income ÷ ${fU(N)} million shares = EPS $?`,long:1,a:eps,rtol:1e-6,unit:'$',tip:`$${fU(X,3)} bn = $${fU(X*1000)} mn → ÷ ${fU(N)} mn = $${eps}`}}
+  const X=P([210,280,350,420,490]);return{q:`₹${X} lakh crore GDP ÷ 140 crore people = ₹? per person`,long:1,a:X*1e12/1.4e9,rtol:1e-6,unit:'₹',tip:`1 lakh crore ÷ 1 crore = 1 lakh. ${X}/140 = ${X/140} lakh = ₹${fx(X*1e12/1.4e9)}`};
+},
+ratios(L){
+  const pool={1:['pe','mcap'],2:['price','dy','pb','payout'],3:['ev','margin','roe','pe'],4:['evebitda','ey','peg','fcfy'],5:['equity','pershare','impliedpe','upside']}[L];
+  const k=P(pool);
+  switch(k){
+  case'pe':{const pe=P([8,10,12,15,18,20,22,25,30,35,40,45,50,60]),eps=R(4,90)*(L>=3?1:2),pr=pe*eps;return{q:`Share price ₹${fx(pr)}, EPS ₹${eps}. P/E?`,long:1,a:pe,unit:'x',tip:`P/E = Price ÷ EPS = ${fx(pr)} ÷ ${eps} = ${pe}x`}}
+  case'mcap':{const pr=R(5,250)*10,sh=P([2,3,4,5,8,10,12,15,25]);return{q:`₹${fx(pr)} per share × ${sh} crore shares. Market cap?`,long:1,a:pr*sh,unit:'₹ cr',tip:`Mcap = price × shares = ${fx(pr)} × ${sh} cr = ₹${fx(pr*sh)} cr`}}
+  case'price':{const pe=P([12,15,18,22,25,28,35,40]),eps=R(8,95);return{q:`EPS ₹${eps}, stock trades at ${pe}x P/E. Share price?`,long:1,a:pe*eps,unit:'₹',tip:`Price = EPS × P/E = ${eps} × ${pe} = ₹${fx(pe*eps)}`}}
+  case'dy':{const y=P([1,1.5,2,2.5,3,4,5,6]),pr=R(4,80)*50,d=pr*y/100;return{q:`Dividend ₹${fx(d)} per share, price ₹${fx(pr)}. Dividend yield?`,long:1,a:y,unit:'%',tol:.01,tip:`DPS ÷ Price = ${fx(d)} ÷ ${fx(pr)} = ${y}%`}}
+  case'pb':{const bv=R(40,400),pb=P([0.8,1.5,2,2.5,3,3.5,4,6]),a=rd(bv*pb,2);return{q:`Book value ₹${bv} per share, P/B ${pb}x. Share price?`,long:1,a,unit:'₹',tip:`Price = BV × P/B = ${bv} × ${pb} = ₹${fx(a)}`}}
+  case'payout':{const eps=R(4,60)*2,po=P([10,20,25,30,40,50,60]),d=eps*po/100;return{q:`EPS ₹${eps}, dividend ₹${fx(d)} per share. Payout ratio?`,long:1,a:po,unit:'%',tol:.01,tip:`DPS ÷ EPS = ${fx(d)} ÷ ${eps} = ${po}%`}}
+  case'ev':{const m=R(20,900)*10,d=R(2,300)*10,c=R(1,150)*10;return{q:`Mcap ₹${fx(m)} cr, debt ₹${fx(d)} cr, cash ₹${fx(c)} cr. Enterprise value?`,long:1,a:m+d-c,unit:'₹ cr',tip:`EV = Mcap + Debt − Cash = ${fx(m)} + ${fx(d)} − ${fx(c)} = ${fx(m+d-c)}`}}
+  case'margin':{const rev=R(8,95)*50,m=R(4,35),e=rev*m/100;return{q:`Revenue ₹${fx(rev)} cr, EBITDA ₹${fx(e)} cr. EBITDA margin?`,long:1,a:m,unit:'%',tol:.01,tip:`1% of revenue = ${fx(rev/100)} → ${fx(e)} ÷ ${fx(rev/100)} = ${m}%`}}
+  case'roe':{const eq=R(4,90)*100,r=R(6,30),ni=eq*r/100;return{q:`Net profit ₹${fx(ni)} cr, equity ₹${fx(eq)} cr. ROE?`,long:1,a:r,unit:'%',tol:.01,tip:`ROE = NI ÷ Equity = ${fx(ni)} ÷ ${fx(eq)} = ${r}%`}}
+  case'evebitda':{const m=P([6,8,9,10,12,14,15,18,20,25]),e=R(12,180)*5;return{q:`EV ₹${fx(m*e)} cr, EBITDA ₹${fx(e)} cr. EV/EBITDA?`,long:1,a:m,unit:'x',tip:`${fx(m*e)} ÷ ${fx(e)} = ${m}x`}}
+  case'ey':{const pe=P([8,10,12.5,16,20,25,40,50]),a=rd(100/pe,2);return{q:`P/E of ${pe}x. Earnings yield?`,a,unit:'%',tol:.05,tip:`Earnings yield = 1 ÷ P/E = 100 ÷ ${pe} = ${fx(a)}%`}}
+  case'peg':{const g=P([10,12,15,20,25,30]),peg=P([0.8,1,1.2,1.5,2]),pe=rd(g*peg,1);return{q:`P/E ${pe}x, expected EPS growth ${g}%. PEG ratio?`,long:1,a:peg,unit:'x',tol:.02,tip:`PEG = P/E ÷ growth = ${pe} ÷ ${g} = ${peg}`}}
+  case'fcfy':{const y=P([2,2.5,3,4,5,6,8]),mc=R(10,200)*100,f=mc*y/100;return{q:`Free cash flow ₹${fx(f)} cr, market cap ₹${fx(mc)} cr. FCF yield?`,long:1,a:y,unit:'%',tol:.01,tip:`FCF ÷ Mcap = ${fx(f)} ÷ ${fx(mc)} = ${y}%`}}
+  case'equity':{const e=R(10,120)*10,m=P([8,10,12,14,15]),nd=R(1,40)*50,a=e*m-nd;return{q:`EBITDA ₹${fx(e)} cr, peer EV/EBITDA ${m}x, net debt ₹${fx(nd)} cr. Equity value?`,long:1,a,unit:'₹ cr',tip:`EV = ${fx(e)} × ${m} = ${fx(e*m)}; Equity = EV − net debt = ${fx(a)}`}}
+  case'pershare':{const N=P([2,4,5,8,10,12.5,25]),ps=R(20,400)*5;return{q:`Equity value ₹${fx(N*ps)} cr, ${N} crore shares. Value per share?`,long:1,a:ps,unit:'₹',tip:`Crores cancel: ${fx(N*ps)} ÷ ${N} = ₹${fx(ps)}`}}
+  case'impliedpe':{const X=R(20,500)*5,pe=P([12,15,18,24,30,45]);return{q:`Net profit ₹${fx(X)} cr, market cap ₹${fx(X*pe)} cr. P/E?`,long:1,a:pe,unit:'x',tip:`Mcap ÷ Net profit = ${fx(X*pe)} ÷ ${fx(X)} = ${pe}x`}}
+  default:{const C=R(10,200)*10,up=P([10,15,20,25,30,40,-10,-15,-20]),T=C*(1+up/100);return{q:`CMP ₹${fx(C)}, analyst target ₹${fx(T)}. Upside?<small>use ± for downside</small>`,long:1,a:up,unit:'%',tol:.05,tip:`(Target − CMP) ÷ CMP = ${fx(T-C)} ÷ ${fx(C)} = ${up}%`}}
+  }
+},
+growth(L){
+  const k=P({1:['r72y','r72r'],2:['comp2','r72y','r72r'],3:['seq','comp2','comp3'],4:['cagr','comp3','seq'],5:['cagr','real','fv']}[L]);
+  if(k==='r72y'){const r=P([3,4,6,8,9,12,18,24]);const ex=Math.log(2)/Math.log(1+r/100);return{q:`At ${r}% a year, about how many years to double?`,long:1,a:72/r,unit:'yrs',tol:.4,tip:`Rule of 72: 72 ÷ ${r} = ${fx(72/r)} yrs (exact ${fx(ex,1)})`}}
+  if(k==='r72r'){const n=P([3,4,6,8,9,12]);const ex=(Math.pow(2,1/n)-1)*100;return{q:`Money doubles in ${n} years. Annual return ≈ ?`,long:1,a:72/n,unit:'%',tol:Math.max(.6,Math.abs(72/n-ex)+.2),tip:`Rule of 72: 72 ÷ ${n} = ${fx(72/n)}% (exact ${fx(ex,1)}%)`}}
+  if(k==='comp2'||k==='comp3'){const n=k==='comp2'?2:3;const X=P([100,1000,2000,5000,10000,50000]);const r=P(n===2?[5,8,10,12,15,20]:[5,10,20]);const f=Math.pow(1+r/100,n),a=rd(X*f,2);
+    return{q:`₹${fx(X)} at ${r}% compounded yearly. Value after ${n} years?`,long:1,a,unit:'₹',rtol:.003,tip:`${fx(1+r/100,2)}${n===2?'²':'³'} = ${fx(f,4)} → ${fx(X)} × ${fx(f,4)} = ${fx(a)}${n===2?` (1 + 2r + r²)`:''}`}}
+  if(k==='seq'){const p1=P([10,12,15,20,25,30]),p2=P([10,15,20,25,40]);const a=rd(((1+p1/100)*(1+p2/100)-1)*100,2);return{q:`Profit grows ${p1}% one year, ${p2}% the next. Total growth?`,long:1,a,unit:'%',tol:.05,tip:`a + b + ab/100 = ${p1} + ${p2} + ${fx(p1*p2/100)} = ${fx(a)}%`}}
+  if(k==='cagr'){const ratio=P([1.5,2,3,4,5,10]),n=P([3,5,7,10,12,15]);const K={1.5:42,2:72,3:114,4:144,5:167,10:240}[ratio];const a=rd((Math.pow(ratio,1/n)-1)*100,2);const tol=rd(Math.max(.5,a*.06),1);const base=R(2,90)*10;
+    return{q:`Revenue ₹${fx(base)} cr → ₹${fx(base*ratio)} cr in ${n} years. CAGR?<small>within ±${tol}% is fine</small>`,long:1,a,unit:'%',tol,tip:`${ratio}× → rule of ~${K}: ${K} ÷ ${n} ≈ ${fx(K/n,1)}%. Exact: ${ratio}^(1/${n}) − 1 = ${fx(a,1)}%`}}
+  if(k==='real'){const nm=P([8,9,10,11,12,14]),inf=P([4,5,6,7]);const a=rd(((1+nm/100)/(1+inf/100)-1)*100,2);return{q:`Nominal return ${nm}%, inflation ${inf}%. Real return?`,long:1,a,unit:'%',tol:.35,tip:`≈ ${nm} − ${inf} = ${nm-inf}%; exact ${fx(1+nm/100)}/${fx(1+inf/100)} − 1 = ${fx(a)}%`}}
+  const r=P([6,8,9,12,18]),n=P([6,8,9,12,18,24]).valueOf();const dbl=72/r;const nn=Math.round(n/dbl)*dbl;const a=rd(Math.pow(1+r/100,nn),3);
+  return{q:`₹1 lakh at ${r}% for ${fx(nn)} years ≈ ? lakh`,long:1,a,unit:'lakh',rtol:.07,tip:`Doubles every 72 ÷ ${r} = ${fx(dbl)} yrs → ${fx(nn/dbl)} doubling${nn/dbl>1?"s":""} → 2^${fx(nn/dbl)} = ${Math.pow(2,nn/dbl)}. Exact ${fx(a)}`};
+},
+sq(L){
+  if(L===5&&Math.random()<.5){const m=R(31,99),lo=Math.floor(m/10)*10;return{q:`√${fx(m*m)}`,a:m,tip:`${lo}² = ${fx(lo*lo)}, ${lo+10}² = ${fx((lo+10)*(lo+10))} → between ${lo} and ${lo+10}; ends in ${m*m%10} → ${m}`}}
+  let n;
+  if(L===1)n=R(11,25);
+  else if(L===2)n=Math.random()<.5?R(1,9)*10+5:R(26,50);
+  else if(L===3)n=R(41,99);
+  else if(L===4)n=Math.random()<.5?R(101,115):R(85,99);
+  else n=P([R(116,135),R(10,25)*10+5,R(991,999)]);
+  return{q:`${n}²`,a:n*n,tip:sqTip(n)};
+},
+frac(L){
+  const D={1:[2,4,5,10,20],2:[8,3,4,5,25],3:[6,8,9,12,16],4:[7,11,15,40,12],5:[7,9,11,13,16,30,40,60]}[L];
+  let d,n;do{d=P(D);n=R(1,d-1)}while(gcd(n,d)!==1);
+  const a=rd(n/d*100,3);const exact=Math.abs(a*100-Math.round(a*100))<1e-6;
+  return{q:`${n}/${d} as a %`,a,unit:'%',tol:exact?.01:.06,tip:`1/${d} = ${fx(100/d,3)}% → × ${n} = ${fx(a,2)}%`};
+},
+bps(L){
+  const k=P({1:['pct2bp','bp2pct'],2:['ychg','spread','pct2bp'],3:['bpof','ychg'],4:['loan','ter','bpof'],5:['cy','dur','loan']}[L]);
+  const neg=' <small>use ± for a fall</small>';
+  if(k==='pct2bp'){const p=P([0.25,0.5,0.75,1.25,1.5,2.25,0.1,0.05,3.4,0.15]);return{q:`${p}% = ? bps`,a:rd(p*100,4),unit:'bps',tip:`× 100: ${p}% = ${rd(p*100,4)} bps`}}
+  if(k==='bp2pct'){const b=P([5,10,15,25,40,75,125,150,225,350]);return{q:`${b} bps = ?%`,a:b/100,unit:'%',tip:`÷ 100: ${b} bps = ${b/100}%`}}
+  if(k==='ychg'){const y1=R(550,850)/100,d=P([-50,-35,-25,-15,-10,10,15,25,40]),y2=rd(y1+d/100,2);return{q:`10-yr yield ${y1.toFixed(2)}% → ${y2.toFixed(2)}%. Change in bps?${neg}`,long:1,a:d,unit:'bps',tol:.5,tip:`${y2.toFixed(2)} − ${y1.toFixed(2)} = ${fx(d/100)}% = ${d} bps`}}
+  if(k==='spread'){const g=R(640,760)/100,s=R(40,350),c=rd(g+s/100,2);return{q:`Corporate bond ${c.toFixed(2)}% vs G-sec ${g.toFixed(2)}%. Spread in bps?`,long:1,a:s,unit:'bps',tol:.5,tip:`${c.toFixed(2)} − ${g.toFixed(2)} = ${fx(s/100)}% = ${s} bps`}}
+  if(k==='bpof'){const b=P([10,25,50,75,100,150]);if(Math.random()<.5){const X=P([200,400,500,1000,2000,4000]);const a=X*b/10000;return{q:`${b} bps of ₹${fx(X)} crore = ₹? crore`,long:1,a,unit:'₹ cr',tip:`${b} bps = ${b/100}% → ${fx(X)} × ${b/100}% = ${fx(a)} cr`}}
+    const X=P([2,4,5,8,10,20]);const a=X*1000*b/10000;return{q:`${b} bps of $${X} billion = $? million`,long:1,a,unit:'$ mn',tip:`1 bp of $1 bn = $0.1 mn → ${b} × ${X} × 0.1 = ${fU(a)} mn`}}
+  if(k==='loan'){const Lk=P([20,25,30,40,50,75,80]),b=P([25,50,35,40]);const a=Lk*1e5*b/10000;return{q:`Rate up ${b} bps. Extra annual interest on a ₹${Lk} lakh floating loan?`,long:1,a,unit:'₹',tip:`1 bp on ₹1 lakh = ₹10/yr → ${b} × ${Lk} × 10 = ₹${fx(a)}`}}
+  if(k==='ter'){const X=P([5,10,20,25,40,50]),r1=P([1.5,1.8,2]),r2=rd(r1-P([0.5,0.75,1]),2);const a=rd(X*1e5*(r1-r2)/100,2);return{q:`₹${X} lakh in a fund. Regular plan TER ${r1}% vs direct ${r2}%. Extra cost per year?`,long:1,a,unit:'₹',tip:`Gap ${fx(r1-r2)}% of ₹${X} lakh = ₹${fx(a)}`}}
+  if(k==='cy'){const c=P([6,6.5,7,7.5,8,9]),p=P([90,92,95,96,98,102,104,105]);const a=rd(c/p*100,3);return{q:`${c}% coupon bond (face ₹100) trades at ₹${p}. Current yield?`,long:1,a,unit:'%',tol:.03,tip:`Coupon ÷ price = ${c} ÷ ${p} = ${fx(a)}%. ${p<100?'Below par → yield above coupon.':'Above par → yield below coupon.'}`}}
+  const D=P([2,3,4,5,6,7,8,10]),b=P([25,50,75,100,-25,-50]);const a=rd(-D*b/100,3);
+  return{q:`Bond duration ${D} yrs. Yields ${b>0?'rise':'fall'} ${Math.abs(b)} bps. Approx price change?${neg}`,long:1,a,unit:'%',tol:.01,tip:`ΔP ≈ −Duration × Δy = −${D} × ${fx(b/100)}% = ${fx(a)}%`};
+}
+};
+function sqTip(n){
+  if(n%10===5){const t=(n-5)/10;return`Ends in 5: ${t}×${t+1} = ${t*(t+1)}, append 25 → ${fx(n*n)}`}
+  if(n>=41&&n<=59){const d=n-50;return`Near 50: (25 ${d>=0?'+':'−'} ${Math.abs(d)}) = ${25+d} hundreds + ${d*d} → ${fx(n*n)}`}
+  if(n>=85&&n<=115){const d=n-100;return`Near 100: ${n} ${d>=0?'+':'−'} ${Math.abs(d)} = ${n+d} hundreds + ${d*d} → ${fx(n*n)}`}
+  if(n>=990){const d=n-1000;return`Near 1000: ${n+d} thousands + ${d*d} → ${fx(n*n)}`}
+  const a=n-n%10,b=n%10;return`(${a}+${b})² = ${fx(a*a)} + 2·${a}·${b} + ${b*b} = ${fx(n*n)}`;
+}
+// ===== GEN-END =====
+
+const CATS=[
+ {id:'add',name:'Addition',ic:'+'},
+ {id:'sub',name:'Subtraction',ic:'−'},
+ {id:'mul',name:'Multiplication',ic:'×'},
+ {id:'div',name:'Division',ic:'÷'},
+ {id:'pct',name:'Percentages & GST',ic:'%'},
+ {id:'chg',name:'% change & margins',ic:'Δ'},
+ {id:'scale',name:'Lakh · crore · mn · bn',ic:'₹$'},
+ {id:'ratios',name:'Valuation ratios',ic:'P/E'},
+ {id:'growth',name:'Growth & CAGR',ic:'↗'},
+ {id:'sq',name:'Squares & roots',ic:'x²'},
+ {id:'frac',name:'Fractions → %',ic:'⅜'},
+ {id:'bps',name:'Basis points & bonds',ic:'bp'},
+];
+const CAT=Object.fromEntries(CATS.map(c=>[c.id,c]));
+const SLOW={pct:1.3,chg:1.6,scale:1.6,ratios:1.7,growth:1.8,bps:1.6,frac:1.2};
+const KEY='mmgym.v1';
+let S;
+function defState(){return{levels:{},stats:{},days:{},best:0,settings:{dur:300,auto:true,cats:Object.fromEntries(CATS.map(c=>[c.id,true]))}}}
+function load(){let s=null;try{s=JSON.parse(localStorage.getItem(KEY))}catch(e){}const d=defState();S=Object.assign(d,s||{});S.settings=Object.assign(defState().settings,S.settings||{});S.settings.cats=Object.assign(defState().settings.cats,S.settings.cats||{})}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const $=s=>document.querySelector(s);
+const lvl=c=>Math.max(1,Math.min(5,Math.floor(S.levels[c]||1)));
+const dayKey=d=>{const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');return`${y}-${m}-${dd}`};
+const today=()=>dayKey(new Date());
+const goalSec=()=>S.settings.dur*0.95;
+function streak(){let n=0;const d=new Date();if(!((S.days[dayKey(d)]||{}).sec>=goalSec()))d.setDate(d.getDate()-1);while((S.days[dayKey(d)]||{}).sec>=goalSec()){n++;d.setDate(d.getDate()-1)}return n}
+function catAcc(c){const s=S.stats[c];if(!s||!s.rec||!s.rec.length)return null;return s.rec.reduce((a,b)=>a+b,0)/s.rec.length}
+const mmss=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`};
+function esc(s){return String(s)}
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(e=>e.hidden=e.id!==id);
+  window.scrollTo(0,0);
+  if(id==='home')renderHome();if(id==='stats')renderStats();if(id==='settings')renderSettings();
+}
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)show(g.dataset.go)});
+
+// ---------- HOME ----------
+function renderHome(){
+  const h=new Date().getHours();
+  $('#hello').textContent=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+' — sharpen up.';
+  const d=S.days[today()]||{sec:0},goal=S.settings.dur,frac=Math.min(1,d.sec/goal);
+  const C=2*Math.PI*44;
+  $('#ring').innerHTML=`<svg width="104" height="104"><circle cx="52" cy="52" r="44" stroke="#272d38" stroke-width="9" fill="none"/><circle cx="52" cy="52" r="44" stroke="${frac>=.95?'#3ddc84':'#6aa8ff'}" stroke-width="9" fill="none" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-frac)}"/></svg><div class="lbl"><div><b class="mono">${Math.floor(d.sec/60)}:${String(Math.floor(d.sec%60)).padStart(2,'0')}</b><br><span>of ${goal/60} min</span></div></div>`;
+  const st=streak();
+  $('#streak').innerHTML=`${st}<small>day streak</small>`;
+  $('#streakSub').innerHTML=frac>=.95?'✅ Today\'s goal done. Extra reps welcome.':`Best: ${Math.max(S.best||0,st)} days · ${Math.ceil((goal-d.sec)/60)} min to go today`;
+  $('#startDaily').textContent=frac>=.95?'Do another round':`Start today's ${goal/60}-minute workout`;
+  // focus suggestion
+  let weak=null;for(const c of CATS){const a=catAcc(c.id);const n=(S.stats[c.id]||{}).n||0;if(a!==null&&n>=6&&(!weak||a<weak.a))weak={c,a}}
+  $('#focusBox').innerHTML=weak&&weak.a<.8?`<div class="tip-card"><div class="small">Weakest area right now</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px"><b>${weak.c.name} · ${Math.round(weak.a*100)}%</b><button class="cta ghost" style="width:auto;margin:0;padding:9px 14px;font-size:14px" onclick="start('practice','${weak.c.id}')">Drill it</button></div></div>`:'';
+  $('#cats').innerHTML=CATS.map(c=>{const L=lvl(c.id),a=catAcc(c.id);return`<button class="cat" onclick="start('practice','${c.id}')"><span class="ic">${c.ic}</span><span class="nm">${c.name}</span><span class="meta"><span class="dots">${[1,2,3,4,5].map(i=>`<i class="${i<=L?'on':''}"></i>`).join('')}</span><span>${a===null?'new':Math.round(a*100)+'%'}</span></span></button>`}).join('');
+}
+$('#startDaily').onclick=()=>start('daily');
+
+// ---------- GAME ----------
+let run=null,tick=null;
+function start(mode,cat){
+  run={mode,cat,dur:S.settings.dur*1000,left:S.settings.dur*1000,active:0,last:performance.now(),paused:false,hidden:false,results:[],q:null,input:'',state:'ask',lastCat:null,target:15};
+  show('game');next();clearInterval(tick);tick=setInterval(onTick,100);onTick();
+}
+function onTick(){
+  if(!run)return;const now=performance.now();
+  if(!run.paused&&!run.hidden){const dt=Math.min(now-run.last,1000);run.active+=dt;if(run.mode==='daily'){run.left-=dt;if(run.left<=0){run.left=0;run.last=now;finish();return}}}
+  run.last=now;renderTimer();
+}
+document.addEventListener('visibilitychange',()=>{if(!run)return;if(document.hidden){run.hidden=true;run.hidAt=performance.now()}else{run.hidden=false;const gap=performance.now()-(run.hidAt||performance.now());run.qStart+=gap;run.last=performance.now()}});
+function renderTimer(){
+  if(run.mode==='daily'){$('#timer').textContent=mmss(run.left);$('#tfill').style.width=(run.left/run.dur*100)+'%';$('#tfill').style.background=run.left<30000?'var(--warn)':'var(--acc)'}
+  else{$('#timer').textContent=`${run.results.length}/${run.target}`;$('#tfill').style.width=(run.results.length/run.target*100)+'%'}
+}
+function pickCat(){
+  if(run.mode==='practice')return run.cat;
+  const on=CATS.filter(c=>S.settings.cats[c.id]).map(c=>c.id);const pool=on.length?on:CATS.map(c=>c.id);
+  const w=pool.map(c=>{if(pool.length>1&&c===run.lastCat)return 0;const a=catAcc(c);return .6+(1-(a===null?.7:a))*2});
+  let r=Math.random()*w.reduce((x,y)=>x+y,0);for(let i=0;i<pool.length;i++){r-=w[i];if(r<=0)return pool[i]}return pool[0];
+}
+function next(){
+  if(!run)return;
+  if(run.mode==='practice'&&run.results.length>=run.target){finish();return}
+  const c=pickCat(),L=lvl(c);let q;
+  for(let i=0;i<20;i++){q=GEN[c](L);if(q&&isFinite(q.a)&&(!run.q||q.q!==run.q.q))break}
+  q.cat=c;q.L=L;run.q=q;run.lastCat=c;run.input='';run.state='ask';run.paused=false;run.qStart=performance.now();
+  $('#gcat').innerHTML=`${CAT[c].name}<span class="lvl">Lv ${L}</span>`;
+  const qt=$('#qtext');qt.innerHTML=q.q;qt.className='qtext'+(q.long||q.q.length>34?' long':'');
+  $('#unit').textContent=q.unit||'';$('#fb').hidden=true;
+  const ab=$('#ans');ab.className='ans mono';renderAns();
+  const g=$('#goBtn');g.textContent='✓';g.classList.remove('next');
+  $('#gscore').textContent=run.results.filter(r=>r.ok).length;
+}
+function renderAns(){
+  const s=run.input;let disp=' ';
+  if(s){const neg=s.startsWith('-'),body=neg?s.slice(1):s;const [i,f]=body.split('.');const iFmt=i===''?'':Number(i).toLocaleString('en-IN');disp=(neg?'−':'')+iFmt+(f!==undefined?'.'+f:'');if(i===''&&f!==undefined)disp=(neg?'−':'')+'0.'+f}
+  $('#ans').textContent=disp;
+}
+function tolOf(q){return Math.max(q.tol??0,Math.abs(q.a)*(q.rtol??1e-6))+1e-9}
+function key(k){
+  if(!run||run.state==='wait')return;
+  if(run.state==='review'){if(k==='ok'||k==='skip')next();return}
+  if(k==='ok'){submit(false);return}
+  if(k==='skip'){submit(true);return}
+  let s=run.input;
+  if(k==='del')s=s.slice(0,-1);
+  else if(k==='neg')s=s.startsWith('-')?s.slice(1):'-'+s;
+  else if(k==='.'){if(!s.includes('.'))s+=(s===''||s==='-')?'0.':'.'}
+  else{const digits=s.replace(/[-.]/g,'');if(digits.length>=12)return;if(k==='00'&&(s===''||s==='-'))return;if(s==='0')s='';if(s==='-0')s='-';s+=k}
+  run.input=s;renderAns();
+  if(S.settings.auto&&k!=='del'&&k!=='neg'){const v=parseFloat(s);if(isFinite(v)&&!s.endsWith('.')&&Math.abs(v-run.q.a)<=tolOf(run.q))submit(false)}
+}
+function submit(skip){
+  const q=run.q;if(!skip&&(run.input===''||run.input==='-'||run.input==='0.'))return;
+  const ms=performance.now()-run.qStart;const v=skip?NaN:parseFloat(run.input);
+  const ok=!skip&&Math.abs(v-q.a)<=tolOf(q);
+  const corr=fmtAns(q);
+  run.results.push({cat:q.cat,q:q.q,corr,given:skip?'skipped':$('#ans').textContent,ok,ms,tip:q.tip,unit:q.unit||''});
+  record(q.cat,ok,ms);
+  if(ok){$('#ans').className='ans mono ok';const qc=$('#qcard');qc.classList.remove('flash');void qc.offsetWidth;qc.classList.add('flash');run.state='wait';$('#gscore').textContent=run.results.filter(r=>r.ok).length;setTimeout(()=>{if(run&&run.state==='wait')next()},260)}
+  else{run.paused=true;run.state='review';$('#ans').className='ans mono bad';const a=$('#ans');a.classList.add('shake');try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}
+    const fb=$('#fb');fb.innerHTML=`<div class="corr">Answer: <b class="mono">${corr}</b> ${q.unit||''}</div><div class="t">💡 ${q.tip}</div>`;fb.hidden=false;
+    const g=$('#goBtn');g.textContent='Next';g.classList.add('next')}
+}
+function fmtAns(q){const d=Math.abs(q.a)<1?4:Math.abs(q.a)<100?2:2;return(q.a<0?'−':'')+Math.abs(q.a).toLocaleString('en-IN',{maximumFractionDigits:d})}
+function record(c,ok,ms){
+  const s=S.stats[c]||(S.stats[c]={n:0,c:0,ms:0,rec:[],msr:[]});
+  s.n++;if(ok)s.c++;s.ms+=ms;s.rec.push(ok?1:0);if(s.rec.length>25)s.rec.shift();if(ok){s.msr.push(Math.round(ms));if(s.msr.length>25)s.msr.shift()}
+  let L=S.levels[c]||1;const target=(4+lvl(c)*3)*1000*(SLOW[c]||1);
+  if(ok)L+=ms<target?.34:.12;else L-=.45;S.levels[c]=Math.max(1,Math.min(5.99,L));save();
+}
+function finish(){
+  clearInterval(tick);const r=run;run=null;if(!r)return;
+  if(r.results.length===0&&r.active<5000){show('home');return}
+  const k=today();const d=S.days[k]||(S.days[k]={sec:0,n:0,c:0});
+  d.sec+=Math.round(r.active/1000);d.n+=r.results.length;d.c+=r.results.filter(x=>x.ok).length;
+  S.best=Math.max(S.best||0,streak());save();renderResults(r);show('results');
+}
+$('#quit').onclick=()=>finish();
+$('#keypad').addEventListener('pointerdown',e=>{const b=e.target.closest('button');if(!b)return;e.preventDefault();key(b.dataset.k)});
+document.addEventListener('keydown',e=>{
+  if($('#game').hidden||!run)return;
+  if(/^[0-9]$/.test(e.key))key(e.key);else if(e.key==='.'||e.key===',')key('.');else if(e.key==='-')key('neg');
+  else if(e.key==='Backspace')key('del');else if(e.key==='Enter')key('ok');else if(e.key==='Escape')key('skip');else return;e.preventDefault();
+});
+
+// ---------- RESULTS ----------
+let lastRun=null;
+function renderResults(r){
+  lastRun={mode:r.mode,cat:r.cat};
+  const n=r.results.length,c=r.results.filter(x=>x.ok).length,acc=n?Math.round(c/n*100):0;
+  const okMs=r.results.filter(x=>x.ok).map(x=>x.ms);const avg=okMs.length?okMs.reduce((a,b)=>a+b,0)/okMs.length/1000:0;
+  $('#resTitle').textContent=acc>=90?'Sharp. 🔥':acc>=70?'Solid session 💪':'Good reps — keep going';
+  const by={};r.results.forEach(x=>{(by[x.cat]=by[x.cat]||{n:0,c:0,ms:0}).n++;if(x.ok){by[x.cat].c++;by[x.cat].ms+=x.ms}});
+  const missed=r.results.filter(x=>!x.ok);
+  const st=streak();const dayDone=(S.days[today()]||{}).sec>=goalSec();
+  $('#resBody').innerHTML=`
+   <div class="big">
+    <div class="stat"><b class="mono">${c}/${n}</b><span>correct</span></div>
+    <div class="stat"><b class="mono">${acc}%</b><span>accuracy</span></div>
+    <div class="stat"><b class="mono">${avg.toFixed(1)}s</b><span>avg per correct answer</span></div>
+    <div class="stat"><b class="mono">${st}</b><span>day streak${dayDone?' ✅':''}</span></div>
+   </div>
+   ${Object.keys(by).length>1?`<h3>By skill</h3><table><tr><th>Skill</th><th>Score</th><th>Avg</th></tr>${Object.entries(by).map(([k,v])=>`<tr><td>${CAT[k].name}</td><td class="mono">${v.c}/${v.n}</td><td class="mono">${v.c?(v.ms/v.c/1000).toFixed(1)+'s':'—'}</td></tr>`).join('')}</table>`:''}
+   ${missed.length?`<h3>Review your misses</h3>${missed.map(m=>`<div class="miss"><div class="mq">${m.q.replace(/<br>/g,' ').replace(/<small>.*?<\/small>/g,'')}</div><div class="ma">You: <s>${m.given}</s> · Answer: <b class="mono">${m.corr}</b> ${m.unit}</div><div class="mt">💡 ${m.tip}</div></div>`).join('')}`:`<div class="tip-card" style="margin-top:16px">No misses. Difficulty will step up automatically.</div>`}`;
+}
+$('#again').onclick=()=>{if(lastRun)start(lastRun.mode,lastRun.cat)};
+
+// ---------- STATS ----------
+function renderStats(){
+  const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const k=dayKey(d);days.push({d,k,sec:(S.days[k]||{}).sec||0})}
+  const goal=S.settings.dur;const max=Math.max(goal*1.3,...days.map(x=>x.sec));
+  let tn=0,tc=0,ts=0;Object.values(S.days).forEach(d=>{tn+=d.n||0;tc+=d.c||0;ts+=d.sec||0});
+  const daysActive=Object.values(S.days).filter(d=>d.sec>=goalSec()).length;
+  $('#statsBody').innerHTML=`
+   <div class="big">
+    <div class="stat"><b class="mono">${streak()}</b><span>current streak · best ${Math.max(S.best||0,streak())}</span></div>
+    <div class="stat"><b class="mono">${daysActive}</b><span>days goal hit</span></div>
+    <div class="stat"><b class="mono">${fx(tn,0)}</b><span>questions answered</span></div>
+    <div class="stat"><b class="mono">${tn?Math.round(tc/tn*100):0}%</b><span>lifetime accuracy · ${Math.round(ts/60)} min</span></div>
+   </div>
+   <h3>Last 14 days (minutes)</h3>
+   <div class="bars"><div class="goal" style="bottom:${goal/max*100*0.78+22}px"></div>${days.map(x=>`<div class="b"><i class="${x.sec>=goalSec()?'met':''}" style="height:${x.sec/max*78}%"></i><span>${'SMTWTFS'[x.d.getDay()]}</span></div>`).join('')}</div>
+   <h3>Skills</h3>
+   <table><tr><th>Skill</th><th>Lv</th><th>Recent acc.</th><th>Speed</th></tr>
+   ${CATS.map(c=>{const s=S.stats[c.id];const a=catAcc(c.id);const sp=s&&s.msr&&s.msr.length?(s.msr.reduce((x,y)=>x+y,0)/s.msr.length/1000).toFixed(1)+'s':'—';return`<tr><td>${c.name}</td><td class="mono">${lvl(c.id)}</td><td class="mono">${a===null?'—':Math.round(a*100)+'%'}<span class="bar-acc"><i style="width:${a===null?0:a*100}%"></i></span></td><td class="mono">${sp}</td></tr>`}).join('')}
+   </table>
+   <p class="note">Recent accuracy uses your last 25 answers per skill. Levels (1–5) rise when you're quick and accurate, and drop when you miss.</p>`;
+}
+
+// ---------- SETTINGS ----------
+let resetArm=false;
+function renderSettings(){
+  const s=S.settings;
+  $('#setBody').innerHTML=`
+   <h3>Daily session length</h3>
+   <div class="seg">${[180,300,600,900].map(v=>`<button class="${s.dur===v?'on':''}" onclick="S.settings.dur=${v};save();renderSettings()">${v/60} min</button>`).join('')}</div>
+   <h3>Answering</h3>
+   <div class="tog" onclick="S.settings.auto=!S.settings.auto;save();renderSettings()"><span>Auto-submit when correct<br><span class="small">No need to tap ✓ — faster flow</span></span><span class="sw ${s.auto?'on':''}"></span></div>
+   <h3>Skills in the daily mix</h3>
+   ${CATS.map(c=>`<div class="tog" onclick="S.settings.cats['${c.id}']=!S.settings.cats['${c.id}'];save();renderSettings()"><span>${c.name}</span><span class="sw ${s.cats[c.id]?'on':''}"></span></div>`).join('')}
+   <h3>Levels</h3>
+   <p class="small" style="line-height:1.5">Already strong in an area? Jump it ahead.</p>
+   ${CATS.map(c=>`<div class="tog"><span>${c.name}</span><span class="seg" style="padding:2px">${[1,2,3,4,5].map(i=>`<button style="padding:5px 9px" class="${lvl(c.id)===i?'on':''}" onclick="S.levels['${c.id}']=${i};save();renderSettings()">${i}</button>`).join('')}</span></div>`).join('')}
+   <button class="danger" id="resetBtn">${resetArm?'Tap again to erase all progress':'Reset all progress'}</button>`;
+  $('#resetBtn').onclick=()=>{if(!resetArm){resetArm=true;renderSettings();setTimeout(()=>{resetArm=false;if(!$('#settings').hidden)renderSettings()},3000);return}resetArm=false;S=defState();save();show('home')};
+}
+
+load();show('home');
+</script>
+</body>
+</html>
